@@ -117,8 +117,8 @@ footer small { font-size:11px; }
 .floating-hearts span { position:absolute; bottom:-30px; left:calc(var(--i) * 7.4%); color:rgba(255,111,145,.12); animation:float 12s linear infinite; animation-delay:calc(var(--i) * -1.7s); font-size:calc(12px + var(--i) * 2px); }
 @keyframes float { to { transform:translateY(-115vh) rotate(25deg); opacity:0; } }
 
-.modal-backdrop { position:fixed; inset:0; z-index:50; display:grid; place-items:center; padding:20px; background:rgba(8,4,6,.82); backdrop-filter:blur(12px); }
-.letter, .surprise { position:relative; max-width:560px; width:100%; padding:48px; border:1px solid var(--line); border-radius:26px; background:#1a0e14; box-shadow:0 30px 100px #000; }
+.modal-backdrop { position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(8,4,6,.82); backdrop-filter:blur(12px); overflow-y:auto; }
+.letter, .surprise { position:relative; max-width:560px; width:100%; max-height:85vh; overflow-y:auto; padding:48px; border:1px solid var(--line); border-radius:26px; background:#1a0e14; box-shadow:0 30px 100px #000; }
 .letter { background:linear-gradient(145deg,#24131b,#130b0f); }
 .letter-icon { width:48px; height:48px; display:grid; place-items:center; border-radius:50%; background:rgba(255,111,145,.12); color:var(--pink); margin-bottom:25px; }
 .letter small { color:var(--pink); letter-spacing:.14em; font-size:9px; font-weight:700; }
@@ -126,7 +126,7 @@ footer small { font-size:11px; }
 .letter p { color:#cbbcc1; line-height:1.8; }
 .love-sign { color:var(--pink) !important; font-family:"Playfair Display"; font-size:22px; }
 .letter strong { font-family:"Playfair Display"; font-weight:500; }
-.close { position:absolute; top:18px; right:18px; border:0; background:transparent; color:#a99ca1; }
+.close { position:sticky; float:right; top:0; margin-bottom:-30px; border:0; background:rgba(26,14,20,.7); backdrop-filter:blur(6px); border-radius:50%; padding:6px; color:#a99ca1; }
 .surprise { text-align:center; }
 .big-heart { font-size:70px; margin-bottom:10px; animation:pulse 1.2s infinite alternate; }
 @keyframes pulse { to { transform:scale(1.12); } }
