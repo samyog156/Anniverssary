@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   Heart,
@@ -65,9 +65,22 @@ function App() {
   const [letterOpen, setLetterOpen] = useState(false);
   const [music, setMusic] = useState(false);
   const [secret, setSecret] = useState(false);
+  const audioRef = useRef(null);
+
+  const toggleMusic = () => {
+    if (!audioRef.current) return;
+    if (music) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setMusic(!music);
+  };
 
   return (
     <main>
+      <audio ref={audioRef} src="/music/Story.mp3" loop />
+
       <div className="floating-hearts" aria-hidden="true">
         {Array.from({ length: 14 }).map((_, i) => (
           <span key={i} style={{ "--i": i }}>♥</span>
@@ -75,8 +88,8 @@ function App() {
       </div>
 
       <nav className="nav">
-        <div className="logo"><Heart size={18} fill="currentColor" /> us.</div>
-        <button className="music-btn" onClick={() => setMusic(!music)}>
+        <div className="logo"><Heart size={18} fill="currentColor" /> Happy Anniversary My Dear</div>
+        <button className="music-btn" onClick={toggleMusic}>
           {music ? <Pause size={16} /> : <Music2 size={16} />}
           {music ? "Playing" : "Our song"}
         </button>
