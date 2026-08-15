@@ -76,6 +76,202 @@ function Confetti({ active }) {
   return <div className="confetti-layer" aria-hidden="true">{pieces}</div>;
 }
 
+const MAZE_SIZE = 11;
+
+function generateMaze(size) {
+  const cells = Array.from({ length: size }, () =>
+    Array.from({ length: size }, () => ({
+      visited: false,
+      top: true,
+      right: true,
+      bottom: true,
+      left: true
+    }))
+  );
+
+  const stack = [[0, 0]];
+  cells[0][0].visited = true;
+
+  const dirs = [
+    { dr: -1, dc: 0, self: "top", opp: "bottom" },
+    { dr: 0, dc: 1, self: "right", opp: "left" },
+    { dr: 1, dc: 0, self: "bottom", opp: "top" },
+    { dr: 0, dc: -1, self: "left", opp: "right" }
+  ];
+
+  while (stack.length) {
+    const [r, c] = stack[stack.length - 1];
+    const options = dirs
+      .map((d) => ({ ...d, nr: r + d.dr, nc: c + d.dc }))
+      .filter(
+        (d) =>
+          d.nr >= 0 &&
+          d.nr < size &&
+          d.nc >= 0 &&
+          d.nc < size &&
+          !cells[d.nr][d.nc].visited
+      );
+
+    if (options.length === 0) {
+      stack.pop();
+      continue;
+    }
+
+    const choice = options[Math.floor(Math.random() * options.length)];
+    cells[r][c][choice.self] = false;
+    cells[choice.nr][choice.nc][choice.opp] = false;
+    cells[choice.nr][choice.nc].visited = true;
+    stack.push([choice.nr, choice.nc]);
+  }
+
+  return cells;
+}
+
+function MazeGame({ onWin }) {
+  const [maze, setMaze] = useState(() => generateMaze(MAZE_SIZE));
+  const [pos, setPos] = useState({ r: 0, c: 0 });
+  const [won, setWon] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const gridRef = useRef(null);
+  const posRef = useRef(pos);
+  const mazeRef = useRef(maze);
+
+  useEffect(() => {
+    posRef.current = pos;
+  }, [pos]);
+
+  useEffect(() => {
+    mazeRef.current = maze;
+  }, [maze]);
+
+  const newMaze = () => {
+    const fresh = generateMaze(MAZE_SIZE);
+    setMaze(fresh);
+    mazeRef.current = fresh;
+    setPos({ r: 0, c: 0 });
+    posRef.current = { r: 0, c: 0 };
+    setWon(false);
+  };
+
+  const tryMoveTo = (r, c) => {
+    const current = posRef.current;
+    if (r === current.r && c === current.c) return;
+    if (r < 0 || r >= MAZE_SIZE || c < 0 || c >= MAZE_SIZE) return;
+
+    const dr = r - current.r;
+    const dc = c - current.c;
+    // only one step at a time — you can't drag "through" a wall or skip a cell
+    if (Math.abs(dr) + Math.abs(dc) !== 1) return;
+
+    const cell = mazeRef.current[current.r][current.c];
+    let allowed = false;
+    if (dr === -1 && !cell.top) allowed = true;
+    if (dr === 1 && !cell.bottom) allowed = true;
+    if (dc === -1 && !cell.left) allowed = true;
+    if (dc === 1 && !cell.right) allowed = true;
+    if (!allowed) return;
+
+    posRef.current = { r, c };
+    setPos({ r, c });
+
+    if (r === MAZE_SIZE - 1 && c === MAZE_SIZE - 1) {
+      setWon(true);
+      onWin && onWin();
+    }
+  };
+
+  const cellFromPoint = (clientX, clientY) => {
+    const grid = gridRef.current;
+    if (!grid) return null;
+    const rect = grid.getBoundingClientRect();
+    const cellW = rect.width / MAZE_SIZE;
+    const cellH = rect.height / MAZE_SIZE;
+    const c = Math.floor((clientX - rect.left) / cellW);
+    const r = Math.floor((clientY - rect.top) / cellH);
+    if (r < 0 || r >= MAZE_SIZE || c < 0 || c >= MAZE_SIZE) return null;
+    return { r, c };
+  };
+
+  const handlePointerDown = (e) => {
+    if (won) return;
+    const cell = cellFromPoint(e.clientX, e.clientY);
+    // she has to actually grab the heart to start dragging
+    if (!cell || cell.r !== posRef.current.r || cell.c !== posRef.current.c) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setDragging(true);
+  };
+
+  const handlePointerMove = (e) => {
+    if (!dragging || won) return;
+    const cell = cellFromPoint(e.clientX, e.clientY);
+    if (cell) tryMoveTo(cell.r, cell.c);
+  };
+
+  const handlePointerUp = () => setDragging(false);
+
+  useEffect(() => {
+    // keyboard stays as an accessible fallback
+    const handleKey = (e) => {
+      if (won) return;
+      const current = posRef.current;
+      if (e.key === "ArrowUp") tryMoveTo(current.r - 1, current.c);
+      if (e.key === "ArrowDown") tryMoveTo(current.r + 1, current.c);
+      if (e.key === "ArrowLeft") tryMoveTo(current.r, current.c - 1);
+      if (e.key === "ArrowRight") tryMoveTo(current.r, current.c + 1);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [won]);
+
+  return (
+    <div className="maze-wrap">
+      <div
+        className={`maze-grid${dragging ? " dragging" : ""}`}
+        ref={gridRef}
+        style={{ gridTemplateColumns: `repeat(${MAZE_SIZE}, 1fr)` }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerUp}
+      >
+        {maze.map((row, r) =>
+          row.map((cell, c) => {
+            const isPlayer = pos.r === r && pos.c === c;
+            const isGoal = r === MAZE_SIZE - 1 && c === MAZE_SIZE - 1;
+            return (
+              <div
+                key={`${r}-${c}`}
+                className="maze-cell"
+                style={{
+                  borderTop: cell.top ? "2px solid var(--pink)" : "2px solid transparent",
+                  borderRight: cell.right ? "2px solid var(--pink)" : "2px solid transparent",
+                  borderBottom: cell.bottom ? "2px solid var(--pink)" : "2px solid transparent",
+                  borderLeft: cell.left ? "2px solid var(--pink)" : "2px solid transparent"
+                }}
+              >
+                {isPlayer && <span className="maze-player">❤️</span>}
+                {!isPlayer && isGoal && <span className="maze-goal">💌</span>}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {won ? (
+        <div className="maze-won">
+          <p>You found me. Always will. ❤️</p>
+          <button className="ghost" onClick={newMaze}>Play again</button>
+        </div>
+      ) : (
+        <>
+          <p className="maze-hint">Press and hold the heart, then drag it along the open path to reach me.</p>
+          <button className="ghost maze-reroll" onClick={newMaze}>New maze</button>
+        </>
+      )}
+    </div>
+  );
+}
+
 function AnniversaryCounter() {
   const [now, setNow] = useState(new Date());
 
@@ -109,6 +305,7 @@ function App() {
   const [music, setMusic] = useState(false);
   const [secret, setSecret] = useState(false);
   const [confettiActive, setConfettiActive] = useState(false);
+  const [mazeOpen, setMazeOpen] = useState(false);
   const audioRef = useRef(null);
 
   const openSurprise = () => {
@@ -215,6 +412,18 @@ function App() {
         <p className="reasons-more">And <strong>there are millions more</strong> where these came from.</p>
       </section>
 
+      <section className="maze-section section">
+        <div className="secret-card">
+          <Heart size={22} fill="currentColor" />
+          <p className="section-label">a little game</p>
+          <h2>Find your way<br />to me.</h2>
+          <p className="muted">A new maze every time — think you can reach me?</p>
+          <button className="primary" onClick={() => setMazeOpen(true)}>
+            <Heart size={17} /> Play the maze
+          </button>
+        </div>
+      </section>
+
       <section className="secret-section section">
         <div className="secret-card">
           <Lock size={22} />
@@ -249,7 +458,7 @@ function App() {
               ordinary days feel special just by being in them.
             </p>
             <p>
-              I don't know what the future holds, but I know one thing,I want
+              I don't know what the future holds, but I know one thing—I want
               to keep making memories with you, keep choosing you, and keep
               loving you a little more every day.
             </p>
@@ -270,10 +479,26 @@ function App() {
             <h2>{HER_NAME}, will you make<br />a million more memories with me?</h2>
             <p className="muted">The best part of our story hasn't happened yet.</p>
             <p className="muted surprise-extra">
-              Every sunrise from here on out, I want you next to me for it 
+              Every sunrise from here on out, I want you next to me for it —
               through every ordinary Tuesday and every big adventure.
             </p>
             <button className="primary" onClick={() => setSecret(false)}>Always ❤️</button>
+          </div>
+        </div>
+      )}
+
+      {mazeOpen && (
+        <div className="modal-backdrop" onClick={() => setMazeOpen(false)}>
+          <div className="surprise maze-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="close" onClick={() => setMazeOpen(false)}><X /></button>
+            <p className="section-label">a little game</p>
+            <h2>Find your way to me</h2>
+            <MazeGame
+              onWin={() => {
+                setConfettiActive(true);
+                setTimeout(() => setConfettiActive(false), 3200);
+              }}
+            />
           </div>
         </div>
       )}

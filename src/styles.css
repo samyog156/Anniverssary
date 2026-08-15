@@ -19,6 +19,18 @@ body { margin: 0; min-width: 320px; background: #10090d; }
 button, a { font: inherit; }
 button { cursor: pointer; }
 
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,111,145,.35) transparent;
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255,111,145,.35);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(255,111,145,.55); }
+
 main {
   min-height: 100vh;
   overflow: hidden;
@@ -146,6 +158,23 @@ footer small { font-size:11px; }
   100% { transform: translate(var(--drift), 100vh) rotate(var(--spin)); opacity: 0; }
 }
 
+.maze-modal { text-align:center; max-width:480px; }
+.maze-wrap { display:flex; flex-direction:column; align-items:center; outline:none; margin-top:20px; }
+.maze-grid {
+  display:grid; width:100%; max-width:380px; aspect-ratio:1/1;
+  background:rgba(255,255,255,.03); border-radius:12px; overflow:hidden;
+  touch-action: none; user-select: none;
+}
+.maze-cell { position:relative; display:flex; align-items:center; justify-content:center; box-sizing:border-box; }
+.maze-player { font-size:16px; animation:pulse 1s infinite alternate; cursor:grab; touch-action:none; }
+.maze-goal { font-size:15px; opacity:.85; }
+.maze-grid.dragging { cursor:grabbing; }
+.maze-grid.dragging .maze-player { cursor:grabbing; }
+.maze-hint { color:var(--muted); font-size:13px; margin-top:16px; max-width:280px; }
+.maze-reroll { margin-top:18px; }
+.maze-won { margin-top:18px; display:flex; flex-direction:column; align-items:center; gap:14px; }
+.maze-won p { font-family:"Playfair Display"; font-size:20px; color:var(--pink); margin:0; }
+
 @media (max-width: 800px) {
   .memory-grid { grid-template-columns:1fr; }
   .memory-image { height:340px; }
@@ -168,4 +197,5 @@ footer small { font-size:11px; }
   .counter div { padding:0 3px; }
   .counter strong { font-size:clamp(20px, 6vw, 30px); }
   .counter span { font-size:7px; letter-spacing:.1em; }
+  .maze-grid { max-width:320px; }
 }
