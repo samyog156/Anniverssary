@@ -458,7 +458,7 @@ function App() {
               ordinary days feel special just by being in them.
             </p>
             <p>
-              I don't know what the future holds, but I know one thing—I want
+              I don't know what the future holds, but I know one thing,I want
               to keep making memories with you, keep choosing you, and keep
               loving you a little more every day.
             </p>
@@ -479,7 +479,7 @@ function App() {
             <h2>{HER_NAME}, will you make<br />a million more memories with me?</h2>
             <p className="muted">The best part of our story hasn't happened yet.</p>
             <p className="muted surprise-extra">
-              Every sunrise from here on out, I want you next to me for it —
+              Every sunrise from here on out, I want you next to me for it 
               through every ordinary Tuesday and every big adventure.
             </p>
             <button className="primary" onClick={() => setSecret(false)}>Always ❤️</button>
