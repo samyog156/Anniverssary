@@ -131,130 +131,75 @@ function MazeGame({ onWin }) {
   const [maze, setMaze] = useState(() => generateMaze(MAZE_SIZE));
   const [pos, setPos] = useState({ r: 0, c: 0 });
   const [won, setWon] = useState(false);
-  const [dragging, setDragging] = useState(false);
-  const gridRef = useRef(null);
   const posRef = useRef(pos);
   const mazeRef = useRef(maze);
 
-  useEffect(() => {
-    posRef.current = pos;
-  }, [pos]);
-
-  useEffect(() => {
-    mazeRef.current = maze;
-  }, [maze]);
+  useEffect(() => { posRef.current = pos; }, [pos]);
+  useEffect(() => { mazeRef.current = maze; }, [maze]);
 
   const newMaze = () => {
     const fresh = generateMaze(MAZE_SIZE);
-    setMaze(fresh);
-    mazeRef.current = fresh;
-    setPos({ r: 0, c: 0 });
-    posRef.current = { r: 0, c: 0 };
+    setMaze(fresh); mazeRef.current = fresh;
+    setPos({ r: 0, c: 0 }); posRef.current = { r: 0, c: 0 };
     setWon(false);
   };
 
-  const tryMoveTo = (r, c) => {
+  const tryMove = (dr, dc) => {
+    if (won) return;
     const current = posRef.current;
-    if (r === current.r && c === current.c) return;
+    const r = current.r + dr, c = current.c + dc;
     if (r < 0 || r >= MAZE_SIZE || c < 0 || c >= MAZE_SIZE) return;
-
-    const dr = r - current.r;
-    const dc = c - current.c;
-    // only one step at a time — you can't drag "through" a wall or skip a cell
-    if (Math.abs(dr) + Math.abs(dc) !== 1) return;
-
     const cell = mazeRef.current[current.r][current.c];
-    let allowed = false;
-    if (dr === -1 && !cell.top) allowed = true;
-    if (dr === 1 && !cell.bottom) allowed = true;
-    if (dc === -1 && !cell.left) allowed = true;
-    if (dc === 1 && !cell.right) allowed = true;
-    if (!allowed) return;
-
-    posRef.current = { r, c };
-    setPos({ r, c });
-
+    if (dr === -1 && cell.top) return;
+    if (dr === 1 && cell.bottom) return;
+    if (dc === -1 && cell.left) return;
+    if (dc === 1 && cell.right) return;
+    const next = { r, c };
+    posRef.current = next; setPos(next);
     if (r === MAZE_SIZE - 1 && c === MAZE_SIZE - 1) {
-      setWon(true);
-      onWin && onWin();
+      setWon(true); onWin && onWin();
     }
   };
 
-  const cellFromPoint = (clientX, clientY) => {
-    const grid = gridRef.current;
-    if (!grid) return null;
-    const rect = grid.getBoundingClientRect();
-    const cellW = rect.width / MAZE_SIZE;
-    const cellH = rect.height / MAZE_SIZE;
-    const c = Math.floor((clientX - rect.left) / cellW);
-    const r = Math.floor((clientY - rect.top) / cellH);
-    if (r < 0 || r >= MAZE_SIZE || c < 0 || c >= MAZE_SIZE) return null;
-    return { r, c };
-  };
-
-  const handlePointerDown = (e) => {
-    if (won) return;
-    const cell = cellFromPoint(e.clientX, e.clientY);
-    // she has to actually grab the heart to start dragging
-    if (!cell || cell.r !== posRef.current.r || cell.c !== posRef.current.c) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    setDragging(true);
-  };
-
-  const handlePointerMove = (e) => {
-    if (!dragging || won) return;
-    const cell = cellFromPoint(e.clientX, e.clientY);
-    if (cell) tryMoveTo(cell.r, cell.c);
-  };
-
-  const handlePointerUp = () => setDragging(false);
-
   useEffect(() => {
-    // keyboard stays as an accessible fallback
     const handleKey = (e) => {
-      if (won) return;
-      const current = posRef.current;
-      if (e.key === "ArrowUp") tryMoveTo(current.r - 1, current.c);
-      if (e.key === "ArrowDown") tryMoveTo(current.r + 1, current.c);
-      if (e.key === "ArrowLeft") tryMoveTo(current.r, current.c - 1);
-      if (e.key === "ArrowRight") tryMoveTo(current.r, current.c + 1);
+      const moves = {
+        ArrowUp: [-1,0], ArrowDown: [1,0], ArrowLeft: [0,-1], ArrowRight: [0,1],
+        w: [-1,0], s: [1,0], a: [0,-1], d: [0,1],
+        W: [-1,0], S: [1,0], A: [0,-1], D: [0,1]
+      };
+      const move = moves[e.key];
+      if (!move || won) return;
+      e.preventDefault();
+      tryMove(move[0], move[1]);
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [won]);
 
+  const control = (dr, dc) => (e) => {
+    e.preventDefault(); e.stopPropagation();
+    tryMove(dr, dc);
+  };
+
   return (
     <div className="maze-wrap">
-      <div
-        className={`maze-grid${dragging ? " dragging" : ""}`}
-        ref={gridRef}
-        style={{ gridTemplateColumns: `repeat(${MAZE_SIZE}, 1fr)` }}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerUp}
-      >
-        {maze.map((row, r) =>
-          row.map((cell, c) => {
-            const isPlayer = pos.r === r && pos.c === c;
-            const isGoal = r === MAZE_SIZE - 1 && c === MAZE_SIZE - 1;
-            return (
-              <div
-                key={`${r}-${c}`}
-                className="maze-cell"
-                style={{
-                  borderTop: cell.top ? "2px solid var(--pink)" : "2px solid transparent",
-                  borderRight: cell.right ? "2px solid var(--pink)" : "2px solid transparent",
-                  borderBottom: cell.bottom ? "2px solid var(--pink)" : "2px solid transparent",
-                  borderLeft: cell.left ? "2px solid var(--pink)" : "2px solid transparent"
-                }}
-              >
-                {isPlayer && <span className="maze-player">❤️</span>}
-                {!isPlayer && isGoal && <span className="maze-goal">💌</span>}
-              </div>
-            );
-          })
-        )}
+      <div className="maze-grid" style={{ gridTemplateColumns: `repeat(${MAZE_SIZE}, 1fr)` }}>
+        {maze.map((row, r) => row.map((cell, c) => {
+          const isPlayer = pos.r === r && pos.c === c;
+          const isGoal = r === MAZE_SIZE - 1 && c === MAZE_SIZE - 1;
+          return (
+            <div key={`${r}-${c}`} className="maze-cell" style={{
+              borderTop: cell.top ? "2px solid var(--pink)" : "2px solid transparent",
+              borderRight: cell.right ? "2px solid var(--pink)" : "2px solid transparent",
+              borderBottom: cell.bottom ? "2px solid var(--pink)" : "2px solid transparent",
+              borderLeft: cell.left ? "2px solid var(--pink)" : "2px solid transparent"
+            }}>
+              {isPlayer && <span className="maze-player">❤️</span>}
+              {!isPlayer && isGoal && <span className="maze-goal">💌</span>}
+            </div>
+          );
+        }))}
       </div>
 
       {won ? (
@@ -264,14 +209,19 @@ function MazeGame({ onWin }) {
         </div>
       ) : (
         <>
-          <p className="maze-hint">Press and hold the heart, then drag it along the open path to reach me.</p>
+          <p className="maze-hint">Use the buttons to move the heart through the maze. Arrow keys and WASD also work.</p>
+          <div className="maze-controls" aria-label="Maze movement controls">
+            <button className="maze-control up" aria-label="Move up" onClick={control(-1,0)}>↑</button>
+            <button className="maze-control left" aria-label="Move left" onClick={control(0,-1)}>←</button>
+            <button className="maze-control down" aria-label="Move down" onClick={control(1,0)}>↓</button>
+            <button className="maze-control right" aria-label="Move right" onClick={control(0,1)}>→</button>
+          </div>
           <button className="ghost maze-reroll" onClick={newMaze}>New maze</button>
         </>
       )}
     </div>
   );
 }
-
 function AnniversaryCounter() {
   const [now, setNow] = useState(new Date());
 
@@ -444,7 +394,7 @@ function App() {
       {letterOpen && (
         <div className="modal-backdrop" onClick={() => setLetterOpen(false)}>
           <div className="letter" onClick={(e) => e.stopPropagation()}>
-            <button className="close" onClick={() => setLetterOpen(false)}><X /></button>
+            <button type="button" className="close" aria-label="Close letter" onClick={(e) => { e.stopPropagation(); setLetterOpen(false); }}><X size={20} /></button>
             <div className="letter-icon"><Heart fill="currentColor" /></div>
             <small>16 AUGUST 2026</small>
             <h2>My dearest Grishma,</h2>
@@ -473,7 +423,7 @@ function App() {
       {secret && (
         <div className="modal-backdrop" onClick={() => setSecret(false)}>
           <div className="surprise" onClick={(e) => e.stopPropagation()}>
-            <button className="close" onClick={() => setSecret(false)}><X /></button>
+            <button type="button" className="close" aria-label="Close surprise" onClick={(e) => { e.stopPropagation(); setSecret(false); }}><X size={20} /></button>
             <div className="big-heart">❤️</div>
             <p className="section-label">SURPRISE UNLOCKED</p>
             <h2>{HER_NAME}, will you make<br />a million more memories with me?</h2>
@@ -490,7 +440,7 @@ function App() {
       {mazeOpen && (
         <div className="modal-backdrop" onClick={() => setMazeOpen(false)}>
           <div className="surprise maze-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="close" onClick={() => setMazeOpen(false)}><X /></button>
+            <button type="button" className="close" aria-label="Close maze" onClick={(e) => { e.stopPropagation(); setMazeOpen(false); }}><X size={20} /></button>
             <p className="section-label">a little game</p>
             <h2>Find your way to me</h2>
             <MazeGame
