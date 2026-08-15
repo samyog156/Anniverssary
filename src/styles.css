@@ -131,11 +131,10 @@ footer small { font-size:11px; }
   .memory-grid { grid-template-columns:1fr; }
   .memory-image { height:340px; }
   .reason-grid { grid-template-columns:1fr; }
-  .counter { grid-template-columns:repeat(2,1fr); gap:28px 0; }
-  .counter div:nth-child(3) { border-left:1px solid var(--line); }
-  .counter div:nth-child(2) { border-right:0; }
-  .counter div:last-child { border-right:1px solid var(--line); }
+  .counter { grid-template-columns:repeat(4,1fr); gap:0; }
+  .counter div { padding:0 6px; }
   .nav { padding:0 20px; }
+  .logo { font-size:14px; gap:6px; }
   .music-btn { padding:9px 11px; }
   .music-btn { font-size:0; }
   .music-btn svg { margin:0; }
@@ -145,4 +144,9 @@ footer small { font-size:11px; }
   .hero-copy { font-size:15px; }
   .section { padding:80px 18px; }
   .letter, .surprise { padding:35px 24px; }
+  .logo { font-size:12px; gap:5px; }
+  .counter { gap:0; }
+  .counter div { padding:0 3px; }
+  .counter strong { font-size:clamp(20px, 6vw, 30px); }
+  .counter span { font-size:7px; letter-spacing:.1em; }
 }
