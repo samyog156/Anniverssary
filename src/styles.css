@@ -82,6 +82,9 @@ main {
 .photo-1 { background: radial-gradient(circle at 70% 30%, #ff9db4, transparent 28%), linear-gradient(135deg,#51202e,#1c0c12); }
 .photo-2 { background: radial-gradient(circle at 30% 35%, #ffc0cf, transparent 22%), linear-gradient(135deg,#361b2a,#150b10); }
 .photo-3 { background: radial-gradient(circle at 70% 60%, #ff6f91, transparent 25%), linear-gradient(135deg,#411523,#130a0e); }
+.photo-4 { background: radial-gradient(circle at 40% 65%, #ff8fa8, transparent 26%), linear-gradient(135deg,#3a1420,#150a0d); }
+.photo-5 { background: radial-gradient(circle at 60% 25%, #ffb3c2, transparent 24%), linear-gradient(135deg,#471c2a,#170b10); }
+.photo-6 { background: radial-gradient(circle at 50% 50%, #ff7a99, transparent 27%), linear-gradient(135deg,#33121c,#12080b); }
 .memory-content { padding: 22px; }
 .memory-content small { color:var(--pink); text-transform:uppercase; letter-spacing:.13em; font-size:9px; font-weight:700; }
 .memory h3 { font-family:"Playfair Display",serif; font-size:28px; margin:10px 0 7px; }
@@ -97,6 +100,8 @@ blockquote em { color:var(--pink); }
 .reason { border:1px solid var(--line); border-radius:16px; padding:20px; display:flex; align-items:center; gap:18px; background:var(--card); }
 .reason span { color:var(--pink); font-family:"Playfair Display"; font-size:22px; }
 .reason p { margin:0; color:#e9dfe2; }
+.reasons-more { text-align:center; margin-top:40px; color:var(--muted); font-size:17px; }
+.reasons-more strong { color:var(--pink); font-family:"Playfair Display"; font-weight:600; }
 
 .secret-card { text-align:center; border:1px solid rgba(255,111,145,.25); border-radius:28px; padding:70px 24px; background: radial-gradient(circle at center,rgba(255,111,145,.12),transparent 60%), var(--card); }
 .secret-card > svg { color:var(--pink); }
@@ -126,6 +131,20 @@ footer small { font-size:11px; }
 .big-heart { font-size:70px; margin-bottom:10px; animation:pulse 1.2s infinite alternate; }
 @keyframes pulse { to { transform:scale(1.12); } }
 .surprise .section-label { justify-content:center; }
+.surprise-extra { margin-top:14px; line-height:1.7; font-size:15px; }
+
+.confetti-layer { position:fixed; inset:0; z-index:60; pointer-events:none; overflow:hidden; }
+.confetti-piece {
+  position:absolute; top:-20px;
+  animation-name: confetti-fall;
+  animation-timing-function: cubic-bezier(.25,.46,.45,.94);
+  animation-fill-mode: forwards;
+}
+@keyframes confetti-fall {
+  0% { transform: translate(0, -20px) rotate(0deg); opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translate(var(--drift), 100vh) rotate(var(--spin)); opacity: 0; }
+}
 
 @media (max-width: 800px) {
   .memory-grid { grid-template-columns:1fr; }

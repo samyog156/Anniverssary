@@ -19,9 +19,12 @@ const YOUR_NAME = "Samyog";
 const HER_NAME = "Grishma";
 
 const memories = [
-  { title: "The beginning", date: "Our first chapter", text: "The day everything quietly became something special.", image: "/photos/memory-1.jpg" },
-  { title: "That one perfect day", date: "A favorite memory", text: "A small moment that somehow became one of my favorites.", image: "/photos/memory-2.jpg" },
-  { title: "Still choosing you", date: "Today", text: "Two years later, and I would still choose you all over again.", image: "/photos/memory-3.jpg" }
+  { title: "A moment worth keeping", date: "Chapter one", text: "The day everything quietly became something special.", image: "/photos/memory-1.jpg" },
+  { title: "One of my favorites", date: "Chapter two", text: "A small moment that somehow became one of my favorites.", image: "/photos/memory-2.jpg" },
+  { title: "Still choosing you", date: "Chapter three", text: "Two years later, and I would still choose you all over again.", image: "/photos/memory-3.jpg" },
+  { title: "A memory to keep", date: "Chapter four", text: "One of those moments I never want to forget.", image: "/photos/memory-4.jpg" },
+  { title: "Growing closer", date: "Chapter five", text: "Another little moment that brought us closer together.", image: "/photos/memory-5.jpg" },
+  { title: "An everyday moment", date: "Chapter six", text: "The ordinary days with you turned out to be the ones I remember most.", image: "/photos/memory-6.jpg" }
 ];
 
 const reasons = [
@@ -30,8 +33,48 @@ const reasons = [
   "You believe in me even when I doubt myself.",
   "You are my favorite person to tell everything to.",
   "With you, I can be completely myself.",
-  "You make love feel safe, fun, and real."
+  "You make love feel safe, fun, and real.",
+  "The way you laugh at your own jokes before finishing them.",
+  "You remember the little things I forget I even said.",
+  "Your hugs feel like coming home.",
+  "You make me want to be a better person.",
+  "The way you care for the people you love.",
+  "You turn stressful days into something bearable, just by being there."
 ];
+
+const CONFETTI_COLORS = ["#ff6f91", "#ff9db4", "#fff0f3", "#ffd166", "#ff4d6d"];
+
+function Confetti({ active }) {
+  if (!active) return null;
+  const pieces = Array.from({ length: 60 }).map((_, i) => {
+    const left = Math.random() * 100;
+    const delay = Math.random() * 0.4;
+    const duration = 2.2 + Math.random() * 1.4;
+    const size = 6 + Math.random() * 8;
+    const color = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+    const drift = (Math.random() - 0.5) * 200;
+    const spin = 360 + Math.random() * 360;
+    const shape = i % 3 === 0 ? "50%" : "3px";
+    return (
+      <span
+        key={i}
+        className="confetti-piece"
+        style={{
+          left: `${left}%`,
+          width: `${size}px`,
+          height: `${size * 0.6}px`,
+          background: color,
+          borderRadius: shape,
+          animationDelay: `${delay}s`,
+          animationDuration: `${duration}s`,
+          "--drift": `${drift}px`,
+          "--spin": `${spin}deg`
+        }}
+      />
+    );
+  });
+  return <div className="confetti-layer" aria-hidden="true">{pieces}</div>;
+}
 
 function AnniversaryCounter() {
   const [now, setNow] = useState(new Date());
@@ -65,7 +108,14 @@ function App() {
   const [letterOpen, setLetterOpen] = useState(false);
   const [music, setMusic] = useState(false);
   const [secret, setSecret] = useState(false);
+  const [confettiActive, setConfettiActive] = useState(false);
   const audioRef = useRef(null);
+
+  const openSurprise = () => {
+    setSecret(true);
+    setConfettiActive(true);
+    setTimeout(() => setConfettiActive(false), 3200);
+  };
 
   const toggleMusic = () => {
     if (!audioRef.current) return;
@@ -153,7 +203,6 @@ function App() {
       </section>
 
       <section className="reasons section">
-        <div className="section-label"><Sparkles size={16} /> A few of a million</div>
         <h2>Reasons I love you</h2>
         <div className="reason-grid">
           {reasons.map((reason, i) => (
@@ -163,6 +212,7 @@ function App() {
             </div>
           ))}
         </div>
+        <p className="reasons-more">And <strong>there are millions more</strong> where these came from.</p>
       </section>
 
       <section className="secret-section section">
@@ -170,7 +220,7 @@ function App() {
           <Lock size={22} />
           <p className="section-label">just between us</p>
           <h2>There's something<br />waiting for you.</h2>
-          <button className="primary" onClick={() => setSecret(true)}>
+          <button className="primary" onClick={openSurprise}>
             <Gift size={17} /> Open your surprise
           </button>
         </div>
@@ -188,18 +238,25 @@ function App() {
             <button className="close" onClick={() => setLetterOpen(false)}><X /></button>
             <div className="letter-icon"><Heart fill="currentColor" /></div>
             <small>16 AUGUST 2026</small>
-            <h2>My favorite person,</h2>
+            <h2>My dearest Grishma,</h2>
             <p>
-              Happy two years, my love. Thank you for every laugh, every late
-              conversation, every little argument we survived, and every moment
-              that made us closer.
+              Two years with you, and somehow, I still get butterflies when I
+              think about us.
             </p>
             <p>
-              I don't know exactly what the next years will look like, but I
-              know who I want beside me while we find out.
+              Thank you for every smile, every laugh, every little moment, and
+              even every silly fight that brought us closer. You have made my
+              ordinary days feel special just by being in them.
             </p>
-            <p className="love-sign">I love you. Always. ❤️</p>
-            <strong>{YOUR_NAME}</strong>
+            <p>
+              I don't know what the future holds, but I know one thing—I want
+              to keep making memories with you, keep choosing you, and keep
+              loving you a little more every day.
+            </p>
+            <p>Happy 2nd Anniversary, my love. ❤️</p>
+            <p className="love-sign">Two years down, forever to go.</p>
+            <p className="love-sign">Forever yours,</p>
+            <strong>Samyog ❤️</strong>
           </div>
         </div>
       )}
@@ -212,10 +269,16 @@ function App() {
             <p className="section-label">SURPRISE UNLOCKED</p>
             <h2>{HER_NAME}, will you make<br />a million more memories with me?</h2>
             <p className="muted">The best part of our story hasn't happened yet.</p>
+            <p className="muted surprise-extra">
+              Every sunrise from here on out, I want you next to me for it —
+              through every ordinary Tuesday and every big adventure.
+            </p>
             <button className="primary" onClick={() => setSecret(false)}>Always ❤️</button>
           </div>
         </div>
       )}
+
+      <Confetti active={confettiActive} />
     </main>
   );
 }
